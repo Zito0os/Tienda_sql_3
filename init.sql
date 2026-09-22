@@ -79,13 +79,25 @@ BEGIN
 
 END $$
 
+
 CREATE PROCEDURE sp_Tipo_de_Cliente(
-    IN p_id_cliente INT,
-    OUT p_tipo_cliente VARCHAR(100)
+    
 BEGIN
-    SELECT T_cliente INTO p_tipo_cliente
-    FROM Clientes
-    WHERE Id_cliente = p_id_cliente;
+
+    SELECT
+    c.ID_cliente,
+    C.T_cleinte,
+
+    COUNT(v.Id_venta) AS Total_ventas
+    SUM(p.Precio_producto) AS Total_gastado
+
+    CASE
+
+    WHEN Total_gastado < 100 THEN 'Bajo'
+    WHEN Total_gastado BETWEEN 100 AND 500 THEN 'Medio'
+    ELSE 'Alto'
+    END AS Tipo_cliente
+    
 END $$
 )
 
