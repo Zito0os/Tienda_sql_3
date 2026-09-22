@@ -5,7 +5,7 @@ USE Mixshop;
 CREATE TABLE Clientes (
     Id_cliente INT PRIMARY KEY AUTO_INCREMENT,
     N_cliente VARCHAR(100),
-    T_cliente VARCHAR(100)
+    T_cliente INT
 );
 
 CREATE TABLE Productos (
@@ -31,7 +31,6 @@ drop table Ventas;
 
 
 
-
 INSERT INTO Productos (Nombre_producto, Precio_producto)
 VALUES
 ('Coca-Cola 600ml', 18.00),
@@ -48,16 +47,19 @@ VALUES
 
 INSERT INTO Clientes (N_cliente, T_cliente)
 VALUES
-('Juan Perez', '5551234567'),
-('Maria Gonzalez', '5552345678'),
-('Carlos Hernandez', '5553456789'),
-('Ana Martinez', '5554567890'),
-('Luis Rodriguez', '5555678901'),
-('Sofia Lopez', '5556789012'),
-('Miguel Torres', '5557890123'),
-('Laura Ramirez', '5558901234'),
-('Daniel Flores', '5559012345'),
-('Fernanda Castillo', '5550123456');
+('Juan Perez', '1'),
+('Maria Gonzalez', '1'),
+('Carlos Hernandez', '1'),
+('Ana Martinez', '1'),
+('Luis Rodriguez', '2'),
+('Sofia Lopez', '2'),
+('Miguel Torres', '2'),
+('Laura Ramirez', '3'),
+('Daniel Flores', '3'),
+('Fernanda Castillo', '3');
+
+
+
 DELIMITER $$
 
 
