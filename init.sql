@@ -79,6 +79,9 @@ BEGIN
 
 END $$
 
+DELIMITER ;
+
+DELIMITER $$
 
 CREATE PROCEDURE sp_Obtener_Metricas_Cliente(
     IN p_id_cliente INT
@@ -93,26 +96,42 @@ BEGIN
     -- Consumo total
     SUM(p.Precio_producto) AS Total_consumo,
     -- Fecha ultimo pedido
-    MAX(v.Fecha_ventas) AS Ultima_Fecha_pedido
+    MAX(v.Fecha_venta) AS Ultima_Fecha_pedido,
     -- Consumo reciente en ultimos 10 pedidos
-    SUM(uv.precio_producto) AS Consumo_reciente
+
+        CREATE TEMPORARY TABLE Ultimas_ventas (
+                id_venta INT,
+                precio_producto DECIMAL(10,2),
+                Fecha_venta DATETIME
+        )
+            INSERT INTO Ultimas_ventas
+                SELECT
+                    v.Id_venta,
+                    p.Precio_producto,
+                    v.Fecha_venta,
+
+                FROM Ventas v
+                INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto;
+                ORDER BY v.Fecha_venta DESC
+                LIMIT 10;
+
+    SUM(uv.precio_producto) AS Consumo_reciente,
     -- nuemro de pedidos de mes 1, mes 2, mes 3 y mes 4
     COUNT(
         CASE 
             WHEN MONTH(v.Fecha_venta) < 4 THEN 1 END) 
-        AS Pedidos_mes_1,
+        AS Pedidos_mes_1
 
     FROM Clientes c
     LEFT JOIN Ventas v ON c.Id_cliente = v.Fk_Id_cliente
     LEFT JOIN Productos p ON v.Fk_Id_producto = p.Id_producto
-    LEFT JOIN #Ultimas_ventas uv ON v.Id_venta = uv.id_venta
+    LEFT JOIN Ultimas_ventas uv ON v.Id_venta = uv.id_venta
 
     WHERE c.Id_cliente = p_id_cliente
 
     GROUP BY c.Id_cliente, c.T_cliente
 
 END $$
-
 
 DELIMITER ;
 
@@ -132,20 +151,7 @@ FROM Ventas v
 INNER JOIN Clientes c ON v.Fk_Id_cliente = c.Id_cliente
 INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto;
 
-CREATE TABLE #Ultimas_ventas (
-        id_venta INT,
-        precio_producto DECIMAL(10,2),
-)
-    INSERT INTO #Ultimas_ventas
-        SELECT
-            v.Id_venta,
-            v.precio_producto,
-            v.Fecha_venta,
 
-        FROM Ventas v
-        INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto;
-        ORDER BY v.Fecha_venta DESC
-        LIMIT 10;
 
 
 -- SE CREARA TRIGUER PARA PARA ACTUALIZAR TIPO DE CLIENTE SEGUN METRICAS
