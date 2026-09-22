@@ -79,9 +79,24 @@ END $$
 
 DELIMITER ;
 
-
-
-
-
 DROP PROCEDURE IF EXISTS sp_Ventas_registrar;
 CALL sp_Ventas_registrar(3, 2);
+CALL sp_Ventas_registrar(7, 4);
+
+
+CREATE VIEW vista_resumen_ventas AS
+SELECT 
+    v.Id_venta,
+    v.Fecha_venta,
+    c.N_cliente AS Cliente,
+    c.T_cliente AS Telefono,
+    p.Nombre_producto AS Producto,
+    p.Precio_producto AS Precio
+FROM Ventas v
+INNER JOIN Clientes c ON v.Fk_Id_cliente = c.Id_cliente
+INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto;
+
+SELECT * FROM vista_resumen_ventas;
+
+
+SELECT * FROM vista_resumen_ventas WHERE Cliente = 'Carlos Hernandez';
