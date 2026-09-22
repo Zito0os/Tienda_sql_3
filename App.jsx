@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
 const categories = ['Todo', 'Instrumentos', 'Viniles', 'Bocinas', 'Mezcladoras', 'Mixers', 'Accesorios']
@@ -7,8 +7,8 @@ const products = [
   {
     id: 1,
     name: 'Guitarra Electrica Fender Stratocaster',
-    price: 1299,
-    oldPrice: 1499,
+    price: 33545.00,
+    oldPrice: 38576.75,
     category: 'Instrumentos',
     badge: 'Top Seller',
     rating: 4.9,
@@ -20,10 +20,10 @@ const products = [
   {
     id: 2,
     name: 'Vinilo Linkin Park - Meteora',
-    price: 39,
-    oldPrice: 55,
+    price: 562.00,
+    oldPrice: 646.30,
     category: 'Viniles',
-    badge: 'Edición',
+    badge: 'Colección',
     rating: 4.8,
     tone: 'vinyl',
     image:
@@ -32,9 +32,9 @@ const products = [
   },
   {
     id: 3,
-    name: 'Bocina JBL Pulse',
-    price: 899,
-    oldPrice: 1020,
+    name: 'Bocina JBL',
+    price: 3525.00,
+    oldPrice: 4053.75,
     category: 'Bocinas',
     badge: 'Nuevo',
     rating: 4.9,
@@ -45,8 +45,8 @@ const products = [
   {
     id: 4,
     name: 'DDJ-400 Mezcladora DJ',
-    price: 1099,
-    oldPrice: 1299,
+    price: 6777.00,
+    oldPrice: 7793.55,
     category: 'Mezcladoras',
     badge: 'Pro',
     rating: 5.0,
@@ -58,8 +58,8 @@ const products = [
   {
     id: 5,
     name: 'Auriculares JBL x Tomorroland',
-    price: 180,
-    oldPrice: 230,
+    price: 3500.00,
+    oldPrice: 4025.00,
     category: 'Accesorios',
     badge: 'Hot',
     rating: 4.7,
@@ -70,8 +70,8 @@ const products = [
   {
     id: 6,
     name: 'Sintetizador Roland V-Synth GT',
-    price: 1490,
-    oldPrice: 1690,
+    price: 222140.00,
+    oldPrice: 255461.00,
     category: 'Instrumentos',
     badge: 'Limited',
     rating: 4.9,
@@ -82,9 +82,9 @@ const products = [
   },
   {
     id: 7,
-    name: 'Guitarra Ibanez RG Prestige',
-    price: 1399,
-    oldPrice: 1600,
+    name: 'Guitarra Acustica Profesional',
+    price: 6699.00,
+    oldPrice: 7703.85,
     category: 'Instrumentos',
     badge: 'Premium',
     rating: 4.9,
@@ -95,198 +95,198 @@ const products = [
   },
   {
     id: 8,
-    name: 'Bocina Logitech X50',
-    price: 650,
-    oldPrice: 780,
+    name: 'Bocinas KALI',
+    price: 15472.00,
+    oldPrice: 17792.80,
     category: 'Bocinas',
     badge: 'Popular',
     rating: 4.8,
     tone: 'speaker',
     image:
-      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80',
+      'https://m.media-amazon.com/images/I/81b1xLYm4aL._AC_SL1500_.jpg',
     desc: 'Sonido envolvente para casa, creatividad y sesiones de mezcla con energía.',
   },
   {
     id: 9,
-    name: 'Bocina Sony SRS-XG300',
-    price: 720,
-    oldPrice: 860,
+    name: 'Equipo de sonido T.I. PRO',
+    price: 180000.00,
+    oldPrice: 207000.00,
     category: 'Bocinas',
     badge: 'Nuevo',
     rating: 4.7,
     tone: 'speaker',
     image:
-      'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=80',
+      'https://image.made-in-china.com/203f0j00ijgoOQMzkscA/T-I-PRO-Audio-Professional-Stage-Sound-Equipment-DJ-Concert-Stage-Line-Array-Two-Way-Double-6-5-Inch-Speakers-Set.webp',
     desc: 'Potencia limpia y gran alcance para fiestas o práctica sin límites.',
   },
   {
     id: 10,
-    name: 'Auriculares Sony WH-1000XM5',
-    price: 420,
-    oldPrice: 520,
+    name: 'Auriculares JBL tour One m3',
+    price: 3200.00,
+    oldPrice: 3680.00,
     category: 'Accesorios',
     badge: 'Top',
     rating: 4.9,
     tone: 'audio',
     image:
-      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80',
+      'https://comprarmag.com/wp-content/uploads/2025/08/JBL-Tour-One-M3-Smart-Tx-Wireless-Over-Ear-Noise-Cancelling-Headphones-with-Smart-Transmitter-1030x1030.jpeg',
     desc: 'Cancelación activa, confort total y audio impecable para producción y escucha.',
   },
   {
     id: 11,
-    name: 'Auriculares Audio-Technica ATH-M50x',
-    price: 260,
-    oldPrice: 310,
+    name: 'Airpods Cancelacion de Ruido APPLE',
+    price: 3100.00,
+    oldPrice: 3565.00,
     category: 'Accesorios',
-    badge: 'Studio',
+    badge: 'HOT',
     rating: 4.8,
     tone: 'audio',
     image:
-      'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=900&q=80',
+      'https://th.bing.com/th?id=OPHS.Hkq6zap0bg%2fU3Q474C474&w=212&h=212&c=17&pid=21.1',
     desc: 'Reference sound para mezcla, master y largas sesiones sin fatiga.',
   },
   {
     id: 12,
     name: 'Sintetizador Korg Minilogue',
-    price: 780,
-    oldPrice: 920,
+    price: 15000.00,
+    oldPrice: 17250.00,
     category: 'Instrumentos',
     badge: 'Analógico',
     rating: 4.8,
     tone: 'synth',
     image:
-      'https://images.unsplash.com/photo-1525201548942-d8732f6617a0?auto=format&fit=crop&w=900&q=80',
+      'https://tse2.mm.bing.net/th/id/OIP.2pr8hjz6q7aY10PGPj5JGgHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3',
     desc: 'Osciladores analógicos con carácter warm y posibilidades creativas infinitas.',
   },
   {
     id: 13,
     name: 'Sintetizador Moog Subsequent 37',
-    price: 1840,
-    oldPrice: 2100,
+    price: 44300.00,
+    oldPrice: 50945.00,
     category: 'Instrumentos',
     badge: 'Limited',
     rating: 5.0,
     tone: 'synth',
     image:
-      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=80',
+      'https://www.chicagomusicexchange.com/cdn/shop/products/moog-keyboards-and-synths-synths-analog-synths-moog-subsequent-37-synthesizer-lps-sub-006-01-u5-29418957766791.jpg?v=1658786361&width=1946',
     desc: 'Un sintetizador para sonidos expresivos, profundos y totalmente únicos.',
   },
   {
     id: 14,
-    name: 'Mezcladora Pioneer DJM-450',
-    price: 1190,
-    oldPrice: 1380,
+    name: 'Mezcladora Pioneer DDJ-1000',
+    price: 22400.00,
+    oldPrice: 25760.00,
     category: 'Mezcladoras',
-    badge: 'Club',
+    badge: 'HOT',
     rating: 4.9,
     tone: 'mixer',
     image:
-      'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=900&q=80',
+      'https://c1.zzounds.com/media/productmedia/fit,2018by3200/quality,85/ddj-1000-front-angle-4248536ef136914b9a601c6fcd2c121a.jpg',
     desc: 'Transiciones suaves y control total para DJ performance profesional.',
   },
   {
     id: 15,
-    name: 'Mezcladora Allen & Heath Xone 23',
-    price: 1230,
-    oldPrice: 1460,
+    name: 'Pioneer CDJ-3000X',
+    price: 180000.00,
+    oldPrice: 207000.00,
     category: 'Mezcladoras',
     badge: 'Pro',
     rating: 4.9,
     tone: 'mixer',
     image:
-      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=80',
+      'https://tse4.mm.bing.net/th/id/OIP.RhiJFwPjVvTUEytHmaJKZgHaDi?r=0&rs=1&pid=ImgDetMain&o=7&rm=3',
     desc: 'Sonido detallado, construcción sólida y gran control para cada sesión.',
   },
   {
     id: 16,
-    name: 'Mixer Pioneer DJM-S9',
-    price: 1340,
-    oldPrice: 1540,
+    name: 'Mini Mixer Audio',
+    price: 1800.00,
+    oldPrice: 2070.00,
     category: 'Mixers',
     badge: 'Scratch',
     rating: 5.0,
     tone: 'mixer',
     image:
-      'https://images.unsplash.com/photo-1525201548942-d8732f6617a0?auto=format&fit=crop&w=900&q=80',
+      'https://m.media-amazon.com/images/I/81dRQSKnYdL._AC_SL1500_.jpg',
     desc: 'Diseñado para DJs que buscan control manual, respuesta precisa y estilo.',
   },
   {
     id: 17,
     name: 'Mixer Denon DJ X185',
-    price: 980,
-    oldPrice: 1150,
+    price: 25000.00,
+    oldPrice: 28750.00,
     category: 'Mixers',
     badge: 'Live',
     rating: 4.8,
     tone: 'mixer',
     image:
-      'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=80',
+      'https://tse4.mm.bing.net/th/id/OIP.ZV99ExqxcCb_xQf-5FuxGgHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3',
     desc: 'Muy útil para setups de live set y DJing con estilo y potencia.',
   },
   {
     id: 18,
-    name: 'Vinilo The Beatles - Abbey Road',
-    price: 44,
-    oldPrice: 58,
+    name: 'Vinilo Michael Jackson - Thriller',
+    price: 750.00,
+    oldPrice: 862.50,
     category: 'Viniles',
     badge: 'Colección',
     rating: 4.9,
     tone: 'vinyl',
     image:
-      'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=900&q=80',
+      'https://tse3.mm.bing.net/th/id/OIP.Jwq4a0U8l92t8gX7mvlpGgHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3',
     desc: 'Edición clásica para coleccionistas que quieren una pieza única.',
   },
   {
     id: 19,
-    name: 'Vinilo Daft Punk - Random Access Memories',
-    price: 47,
-    oldPrice: 62,
+    name: 'Vinilo Twisted Sister - Stay Hungry',
+    price: 900.00,
+    oldPrice: 1035.00,
     category: 'Viniles',
-    badge: 'Futurista',
+    badge: 'Colección',
     rating: 4.9,
     tone: 'vinyl',
     image:
-      'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=80',
+      'https://tse4.mm.bing.net/th/id/OIP.YT2B9HCsd5bN3S39z5cbdgHaFn?r=0&rs=1&pid=ImgDetMain&o=7&rm=3',
     desc: 'Calidad sonora premium con vibra futurista y mucha presencia.',
   },
   {
     id: 20,
-    name: 'Vinilo Queen - A Night at the Opera',
-    price: 42,
-    oldPrice: 56,
+    name: 'Vinilo AC/DC - Live',
+    price: 1500.00,
+    oldPrice: 1725.00,
     category: 'Viniles',
-    badge: 'Clásico',
+    badge: 'Colección',
     rating: 4.8,
     tone: 'vinyl',
     image:
-      'https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=900&q=80',
+      'https://www.d2fy.es/cdn/shop/products/acdc-2lp-vinilo-dorado-live-ed-50-aniversario-485775_1200x.jpg?v=1708516450',
     desc: 'Un vinilo con identidad, carácter y energía para cualquier colección.',
   },
   {
     id: 21,
-    name: 'Vinilo Kendrick Lamar - DAMN.',
-    price: 46,
-    oldPrice: 61,
+    name: 'Vinilo Green day - American Idiot',
+    price: 850.00,
+    oldPrice: 977.50,
     category: 'Viniles',
-    badge: 'Fresh',
+    badge: 'Colección',
     rating: 4.8,
     tone: 'vinyl',
     image:
-      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80',
-    desc: 'El detalle perfecto para coleccionistas y amantes del rap moderno.',
+      'https://musikpop.uy/cdn/shop/files/51O1fnUvouL._UF1000_1000_QL80.jpg?v=1756090570&width=1445',
+    desc: 'El detalle perfecto para coleccionistas y amantes de la música rock.',
   },
   {
     id: 22,
-    name: 'Vinilo Radiohead - In Rainbows',
-    price: 45,
-    oldPrice: 59,
+    name: 'Vinilo Avril Lavigne - Let Go',
+    price: 1025.00,
+    oldPrice: 1178.75,
     category: 'Viniles',
-    badge: 'Edit',
+    badge: 'Colección',
     rating: 4.8,
     tone: 'vinyl',
     image:
-      'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=900&q=80',
-    desc: 'Un clásico para disfrutar en alta fidelidad y con contenido visual.',
+      'https://topicashop.com/cdn/shop/files/vinilo-avril-lavigne-let-go-2301627.jpg?v=1755191617&width=1445',
+    desc: 'Un clásico para disfrutar en alta fidelidad para fans de Avril Lavigne.',
   },
 ]
 
@@ -326,8 +326,23 @@ function App() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [dragState, setDragState] = useState({ isDragging: false, startX: 0, startY: 0 })
 
+  useEffect(() => {
+    if (!selectedProduct) return undefined
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setSelectedProduct(null)
+        setDragState({ isDragging: false, startX: 0, startY: 0 })
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [selectedProduct])
+
   const filteredProducts = useMemo(() => {
     if (selectedCategory === 'Todo') return products
+    if (selectedCategory === 'Hot') return products.filter((product) => product.badge.toLowerCase() === 'hot')
     return products.filter((product) => product.category === selectedCategory)
   }, [selectedCategory])
 
@@ -588,7 +603,16 @@ function App() {
 
             <div className="cta-row">
               <a href="#catalogo" className="primary-btn">Explorar catálogo</a>
-              <button type="button" className="secondary-btn">Ver ofertas</button>
+              <button
+                type="button"
+                className={selectedCategory === 'Hot' ? 'secondary-btn active' : 'secondary-btn'}
+                onClick={() => {
+                  setSelectedCategory('Hot')
+                  document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })
+                }}
+              >
+                Hot list
+              </button>
             </div>
 
             <div className="hero-stats">
