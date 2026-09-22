@@ -81,29 +81,37 @@ END $$
 
 
 CREATE PROCEDURE sp_Tipo_de_Cliente(
+    IN p_id_cliente INT
+)
     
 BEGIN
 
     SELECT
-    c.ID_cliente,
-    C.T_cleinte,
-
-    COUNT(v.Id_venta) AS Total_ventas
-    SUM(p.Precio_producto) AS Total_gastado
+    c.Id_cliente,
+    c.T_cliente,
+    COUNT(v.Id_venta) AS Total_ventas,
+    SUM(p.Precio_producto) AS Total_gastado,
 
     CASE
-
-    WHEN Total_gastado < 100 THEN 'Bajo'
-    WHEN Total_gastado BETWEEN 100 AND 500 THEN 'Medio'
-    ELSE 'Alto'
+        WHEN SUM(p.Precio_producto) < 5000 THEN 'Bajo'
+        WHEN SUM(p.Precio_producto) BETWEEN 5000 AND 10000 THEN 'Medio'
+        ELSE 'Alto'
     END AS Tipo_cliente
-    
+
+    FROM Clientes c
+    LEFT JOIN Ventas v ON c.Id_cliente = v.Fk_Id_cliente
+    LEFT JOIN Productos p ON v.Fk_Id_producto = p.Id_producto
+
+    WHERE c.Id_cliente = p_id_cliente
+
+    GROUP BY c.Id_cliente, c.T_cliente
+
 END $$
-)
+
 
 DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_Ventas_registrar;
+DROP PROCEDURE IF EXISTS sp_Ventas_registrar; --Esto no va antes de crear el procedimiento?
 CALL sp_Ventas_registrar(3, 2);
 CALL sp_Ventas_registrar(7, 4);
 
@@ -112,7 +120,7 @@ SELECT
     v.Id_venta,
     v.Fecha_venta,
     c.N_cliente AS Cliente,
-    c.T_cliente AS Telefono,
+    c.T_cliente AS Telefono, -- Que pdo con esto?
     p.Nombre_producto AS Producto,
     p.Precio_producto AS Precio
 FROM Ventas v
