@@ -77,12 +77,21 @@ BEGIN
 
 END $$
 
+CREATE PROCEDURE sp_Tipo_de_Cliente(
+    IN p_id_cliente INT,
+    OUT p_tipo_cliente VARCHAR(100)
+BEGIN
+    SELECT T_cliente INTO p_tipo_cliente
+    FROM Clientes
+    WHERE Id_cliente = p_id_cliente;
+END $$
+)
+
 DELIMITER ;
 
 DROP PROCEDURE IF EXISTS sp_Ventas_registrar;
 CALL sp_Ventas_registrar(3, 2);
 CALL sp_Ventas_registrar(7, 4);
-
 
 CREATE VIEW vista_resumen_ventas AS
 SELECT 
@@ -96,7 +105,9 @@ FROM Ventas v
 INNER JOIN Clientes c ON v.Fk_Id_cliente = c.Id_cliente
 INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto;
 
-SELECT * FROM vista_resumen_ventas;
 
+
+
+SELECT * FROM vista_resumen_ventas;
 
 SELECT * FROM vista_resumen_ventas WHERE Cliente = 'Carlos Hernandez';
