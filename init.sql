@@ -81,6 +81,7 @@ END $$
 
 DELIMITER ;
 
+
 DELIMITER $$
 
 CREATE PROCEDURE sp_Obtener_Metricas_Cliente(
@@ -119,13 +120,14 @@ CREATE TEMPORARY TABLE Ultimas_ventas (
         -- Fecha ultimo pedido
         MAX(v.Fecha_venta) AS Ultima_Fecha_pedido,
         -- Consumo reciente en ultimos 10 pedidos
-        (SELECT SUM(uv.Precio_producto) FROM Ultimas_ventas) AS Consumo_reciente,
+        -- (SELECT SUM(uv.Precio_producto) FROM Ultimas_ventas) AS Consumo_reciente,
+		SUM(uv.Precio_producto) AS Consumo_reciente,
         -- nuemro de pedidos de mes 1, mes 2, mes 3 y mes 4
         COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 0 THEN 1 END) AS Pedidos_mes_Act,
         COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 1 THEN 1 END) AS Pedidos_mes_1,
         COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 2 THEN 1 END) AS Pedidos_mes_2,
-        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 3 THEN 1 END) AS Pedidos_mes_3,
-        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 4 THEN 1 END) AS Pedidos_mes_4
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 3 THEN 1 END) AS Pedidos_mes_3
+        -- COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 4 THEN 1 END) AS Pedidos_mes_4
 
     FROM Clientes c
     LEFT JOIN Ventas v ON c.Id_cliente = v.Fk_Id_cliente
