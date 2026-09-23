@@ -156,6 +156,25 @@ FROM Ventas v
 INNER JOIN Clientes c ON v.Fk_Id_cliente = c.Id_cliente
 INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto;
 
+-- VISTA TIPO CLIENTE
+CREATE OR REPLACE VIEW vista_tipos_clientes AS
+SELECT 
+    Id_cliente,
+    N_cliente AS Nombre_cliente,
+    T_cliente AS Tipo_cliente_id,
+    CASE T_cliente
+        WHEN 1 THEN 'Bueno'
+        WHEN 2 THEN 'Medio'
+        WHEN 3 THEN 'Malo'
+        ELSE 'Sin Clasificar'
+    END AS Tipo_cliente_descripcion
+FROM Clientes;
+
+SELECT * FROM vista_tipos_clientes;
+
+SELECT * 
+FROM vista_tipos_clientes 
+WHERE Tipo_cliente_id IN (2);
 
 
 
