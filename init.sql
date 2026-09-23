@@ -354,3 +354,93 @@ INSERT INTO Ventas (Fk_Id_cliente, Fk_Id_producto, Fecha_venta) VALUES
 (10, 22, NOW() - INTERVAL 95 DAY),
 (10, 19, NOW() - INTERVAL 115 DAY),
 (10, 11, NOW() - INTERVAL 130 DAY);
+
+
+
+
+--------------------------------------------
+DELIMITER $$
+
+CREATE PROCEDURE sp_Actualizar_Metricas_Cliente(
+    IN p_id_cliente INT
+)
+    
+BEGIN
+DECLARE v_total_consumo DECIMAL (12,2) DEFAULT 0;
+DECLARE v_ultima_fecha DATE;
+DECLARE v_consumo_reciente DECIMAL (12,2) DEFAULT 0;
+DECLARE v_ped_act INT DEFAULT 0;
+DECLARE v_ped_1 INT DEFAULT 0;
+DECLARE v_ped_2 INT DEFAULT 0;
+DECLARE v_ped_3 INT DEFAULT 0;
+DECLARE v_nuevo_tipo INT;
+
+
+select 
+		coalesce(sum(p.Precio_producto),0),
+		MAX(v.Fecha_venta),
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 0 THEN 1 END) AS Pedidos_mes_Act,
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 1 THEN 1 END) AS Pedidos_mes_1,
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 2 THEN 1 END) AS Pedidos_mes_2,
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 3 THEN 1 END) AS Pedidos_mes_3
+        
+	INTO 
+		v_total_consumo,v_consumo_reciente,v_ped_act,v_ped_1,v_ped_2,v_ped_3
+	FROM Ventas v
+    INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto
+    WHERE Fk_Id_cliente = p_id_cliente;
+
+
+SELECT coalesce(sum(sub.Precio_producto),0)
+into v_consumo_reciente
+FROM(
+	select p.Precio_producto
+	From ventas v
+    INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto
+    WHERE Fk_Id_cliente = p_id_cliente
+    ORDER BY v.Fecha_venta DESC
+	LIMIT 10
+
+)sub;
+
+ SET v_nuevo_tipo = CASE
+        WHEN v_consumo_reciente > 20000
+          OR (v_ped_act >= 4 AND v_ped_1 >= 4 AND v_ped_2 >= 4 AND v_ped_3 >= 4)
+            THEN 3
+
+        WHEN (v_ultima_fecha IS NULL OR DATEDIFF(CURRENT_TIMESTAMP, v_ultima_fecha) > 90)
+         AND v_total_consumo < 5000
+            THEN 2
+
+        ELSE 1
+    END;
+
+    UPDATE Clientes
+    SET T_cliente = v_nuevo_tipo
+    WHERE Id_cliente = p_id_cliente
+      AND T_cliente <> v_nuevo_tipo;
+
+
+END $$
+
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+DROP TRIGGER IF EXISTS trg_Ventas_After_Insert;
+DELIMITER $$
+
+CREATE TRIGGER trg_Ventas_After_Insert
+AFTER INSERT ON Ventas
+FOR EACH ROW
+BEGIN
+    CALL sp_Actualizar_Metricas_Cliente(NEW.Fk_Id_cliente);
+END$$
+
+DELIMITER ;
