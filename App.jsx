@@ -585,6 +585,7 @@ function App() {
           <a href="#catalogo">Catálogo</a>
           <a href="#destacados">Destacados</a>
           <a href="#soporte">Soporte</a>
+          <a href="/admin">Panel admin</a>
         </nav>
 
         <button type="button" className="cart-button" onClick={() => setIsCartOpen(true)}>

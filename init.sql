@@ -65,7 +65,7 @@ DELIMITER $$
 
 
 
-
+-- PROCEDURE REGISTROS VENTAS
 DELIMITER $$
 
 CREATE PROCEDURE sp_Ventas_registrar(
@@ -82,6 +82,7 @@ END $$
 DELIMITER ;
 
 
+-- PROCEDURE DE METRICAS
 DELIMITER $$
 
 CREATE PROCEDURE sp_Obtener_Metricas_Cliente(
@@ -144,6 +145,7 @@ DROP PROCEDURE IF EXISTS sp_Ventas_registrar; --Esto no va antes de crear el pro
 CALL sp_Ventas_registrar(3, 2);
 CALL sp_Ventas_registrar(7, 4);
 
+-- VISTA DE RESUMEN
 CREATE VIEW vista_resumen_ventas AS
 SELECT 
     v.Id_venta,
