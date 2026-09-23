@@ -89,47 +89,50 @@ CREATE PROCEDURE sp_Obtener_Metricas_Cliente(
     
 BEGIN
 
-    SELECT
-    c.Id_cliente,
-    -- Cantidad de ventas
-    COUNT(v.Id_venta) AS Total_ventas,
-    -- Consumo total
-    SUM(p.Precio_producto) AS Total_consumo,
-    -- Fecha ultimo pedido
-    MAX(v.Fecha_venta) AS Ultima_Fecha_pedido,
-    -- Consumo reciente en ultimos 10 pedidos
-
-        CREATE TEMPORARY TABLE Ultimas_ventas (
-                id_venta INT,
-                precio_producto DECIMAL(10,2),
+-- La tabla temporal
+DROP TEMPORARY TABLE IF EXISTS Ultimas_ventas;
+CREATE TEMPORARY TABLE Ultimas_ventas (
+                Fk_id_venta INT,
+                Precio_producto DECIMAL(10,2),
                 Fecha_venta DATETIME
-        )
+        );
             INSERT INTO Ultimas_ventas
+
                 SELECT
                     v.Id_venta,
                     p.Precio_producto,
-                    v.Fecha_venta,
+                    v.Fecha_venta
 
                 FROM Ventas v
-                INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto;
+                INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto
+                WHERE v.Fk_Id_cliente = p_id_cliente
                 ORDER BY v.Fecha_venta DESC
                 LIMIT 10;
 
-    SUM(uv.precio_producto) AS Consumo_reciente,
-    -- nuemro de pedidos de mes 1, mes 2, mes 3 y mes 4
-    COUNT(
-        CASE 
-            WHEN MONTH(v.Fecha_venta) < 4 THEN 1 END) 
-        AS Pedidos_mes_1
+    SELECT
+        c.Id_cliente,
+        c.T_cliente AS Tipo_de_cliente,
+        -- Cantidad de ventas
+        COUNT(v.Id_venta) AS Total_ventas,
+        -- Consumo total
+        SUM(p.Precio_producto) AS Total_consumo,
+        -- Fecha ultimo pedido
+        MAX(v.Fecha_venta) AS Ultima_Fecha_pedido,
+        -- Consumo reciente en ultimos 10 pedidos
+        (SELECT SUM(uv.Precio_producto) FROM Ultimas_ventas) AS Consumo_reciente,
+        -- nuemro de pedidos de mes 1, mes 2, mes 3 y mes 4
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 0 THEN 1 END) AS Pedidos_mes_Act,
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 1 THEN 1 END) AS Pedidos_mes_1,
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 2 THEN 1 END) AS Pedidos_mes_2,
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 3 THEN 1 END) AS Pedidos_mes_3,
+        COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 4 THEN 1 END) AS Pedidos_mes_4
 
     FROM Clientes c
     LEFT JOIN Ventas v ON c.Id_cliente = v.Fk_Id_cliente
     LEFT JOIN Productos p ON v.Fk_Id_producto = p.Id_producto
-    LEFT JOIN Ultimas_ventas uv ON v.Id_venta = uv.id_venta
-
+    LEFT JOIN Ultimas_ventas uv ON v.Id_venta = uv.Fk_id_venta
     WHERE c.Id_cliente = p_id_cliente
-
-    GROUP BY c.Id_cliente, c.T_cliente
+    GROUP BY c.Id_cliente, c.T_cliente;
 
 END $$
 
