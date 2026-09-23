@@ -33,16 +33,28 @@ drop table Ventas;
 
 INSERT INTO Productos (Nombre_producto, Precio_producto)
 VALUES
-('Coca-Cola 600ml', 18.00),
-('Sabritas Originales', 22.00),
-('Pepsi 600ml', 17.00),
-('Galletas Oreo', 25.00),
-('Pan Blanco Bimbo', 42.00),
-('Leche Lala 1L', 28.00),
-('Agua Ciel 1L', 15.00),
-('Chocolate Carlos V', 14.00),
-('Doritos Nacho', 23.00),
-('Jugo Del Valle 1L', 30.00);
+('Guitarra Electrica Fender Stratocaster', 33545.00),
+('Vinilo Linkin Park - Meteora', 562.00),
+('Bocina JBL', 3525.00),
+('DDJ-400 Mezcladora DJ', 6777.00),
+('Auriculares JBL x Tomorroland', 3500.00),
+('Sintetizador Roland V-Synth GT', 222140.00),
+('Guitarra Acustica Profesional', 6699.00),
+('Bocinas KALI', 15472.00),
+('Equipo de sonido T.I. PRO', 180000.00),
+('Auriculares JBL tour One m3', 3200.00),
+('Airpods Cancelacion de Ruido APPLE', 3100.00),
+('Sintetizador Korg Minilogue', 15000.00),
+('Sintetizador Moog Subsequent 37', 44300.00),
+('Mezcladora Pioneer DDJ-1000', 22400.00),
+('Pioneer CDJ-3000X', 180000.00),
+('Mini Mixer Audio', 1800.00),
+('Mixer Denon DJ X185', 25000.00),
+('Vinilo Michael Jackson - Thriller', 750.00),
+('Vinilo Twisted Sister - Stay Hungry', 900.00),
+('Vinilo AC/DC - Live', 1500.00),
+('Vinilo Green day - American Idiot', 850.00),
+('Vinilo Avril Lavigne - Let Go', 1025.00);
 
 
 INSERT INTO Clientes (N_cliente, T_cliente)
