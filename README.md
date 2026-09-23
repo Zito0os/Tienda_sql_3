@@ -1,6 +1,6 @@
 # MixShop
 
-Tienda de productos musicales hecha con React, Vite y MySQL. La tienda pública se mantiene en `/` y el centro de vendedores está disponible en `/admin`.
+Tienda de productos musicales hecha con React, Vite y MySQL. La ruta inicial `/` abre el centro de vendedores en `/admin`; la tienda pública permanece disponible en `/tienda`.
 
 ## Configuración
 
@@ -22,6 +22,12 @@ La API calcula las categorías en este orden:
 3. **Normal:** cualquier otro caso.
 
 La primera regla tiene prioridad. Un cliente de alto nivel no se reclasifica como cliente en riesgo.
+
+## Historial de ventas
+
+El panel `/admin` incluye el historial completo de `Ventas`, con búsqueda por nombre o ID de cliente, rango de fechas, orden por fecha o monto y paginación de 10, 25 o 50 registros. Los filtros se procesan en MySQL a través de `GET /api/admin/sales`, por lo que no dependen del volumen cargado en el navegador.
+
+Debido al esquema actual, cada registro de `Ventas` corresponde a un pedido de un producto. Si posteriormente se agrega una tabla de detalle de pedido, la API puede agrupar varios productos bajo un mismo pedido sin cambiar la interfaz.
 
 ## Comandos
 

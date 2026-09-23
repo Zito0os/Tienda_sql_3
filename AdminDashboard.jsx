@@ -12,6 +12,7 @@ import {
   YAxis,
 } from 'recharts'
 import './AdminDashboard.css'
+import SalesHistory from './SalesHistory.jsx'
 
 const customerTypes = [
   { id: 'all', label: 'Todos' },
@@ -99,7 +100,7 @@ function AdminDashboard() {
   return (
     <div className="admin-shell">
       <header className="admin-topbar">
-        <a className="admin-brand" href="/" aria-label="Ir a la tienda MixShop">
+        <a className="admin-brand" href="/admin" aria-label="Ir al panel de MixShop">
           <span className="logo-mark">M</span>
           <span>
             <strong>MixShop</strong>
@@ -111,9 +112,10 @@ function AdminDashboard() {
           <a className="active" href="#resumen">Resumen</a>
           <a href="#clientes">Clientes</a>
           <a href="#productos">Productos</a>
+          <a href="#ventas">Ventas</a>
         </nav>
 
-        <a className="store-link" href="/">Ver tienda</a>
+        <a className="store-link" href="/tienda">Ver tienda</a>
       </header>
 
       <main className="admin-main" id="resumen">
@@ -307,6 +309,8 @@ function AdminDashboard() {
                 </div>
               </article>
             </section>
+
+            <SalesHistory />
           </>
         )}
       </main>

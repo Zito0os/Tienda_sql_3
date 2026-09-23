@@ -3,9 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-const normalizedPath = window.location.pathname.replace(/\/+$/, '') || '/'
+const requestedPath = window.location.pathname.replace(/\/+$/, '') || '/'
+
+if (requestedPath === '/') {
+  window.history.replaceState(null, '', '/admin')
+}
+
 const AdminDashboard = lazy(() => import('./AdminDashboard.jsx'))
-const isAdminRoute = normalizedPath === '/admin'
+const isAdminRoute = requestedPath === '/' || requestedPath === '/admin'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
