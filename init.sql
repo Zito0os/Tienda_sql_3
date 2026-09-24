@@ -26,10 +26,6 @@ CREATE TABLE Ventas (
     FOREIGN KEY (Fk_Id_cliente)
         REFERENCES Clientes(Id_cliente)
 );
-drop table Ventas;
-
-
-
 
 INSERT INTO Productos (Nombre_producto, Precio_producto)
 VALUES
@@ -74,12 +70,7 @@ VALUES
 
 DELIMITER $$
 
-
-
-
-
-DELIMITER $$
-
+DROP PROCEDURE IF EXISTS sp_Ventas_registrar$$
 CREATE PROCEDURE sp_Ventas_registrar(
     IN p_id_cliente INT,
     IN p_id_producto INT
@@ -93,13 +84,11 @@ END $$
 
 DELIMITER ;
 
-
 DELIMITER $$
-
+DROP PROCEDURE IF EXISTS sp_Obtener_Metricas_Cliente$$
 CREATE PROCEDURE sp_Obtener_Metricas_Cliente(
     IN p_id_cliente INT
 )
-    
 BEGIN
 
 -- La tabla temporal
@@ -132,8 +121,7 @@ CREATE TEMPORARY TABLE Ultimas_ventas (
         -- Fecha ultimo pedido
         MAX(v.Fecha_venta) AS Ultima_Fecha_pedido,
         -- Consumo reciente en ultimos 10 pedidos
-        -- (SELECT SUM(uv.Precio_producto) FROM Ultimas_ventas) AS Consumo_reciente,
-		SUM(uv.Precio_producto) AS Consumo_reciente,
+		COALESCE(SUM(uv.Precio_producto), 0.00) AS Consumo_reciente,
         -- nuemro de pedidos de mes 1, mes 2, mes 3 y mes 4
         COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 0 THEN 1 END) AS Pedidos_mes_Act,
         COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 1 THEN 1 END) AS Pedidos_mes_1,
@@ -152,10 +140,7 @@ END $$
 
 DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_Ventas_registrar; --Esto no va antes de crear el procedimiento?
-CALL sp_Ventas_registrar(3, 2);
-CALL sp_Ventas_registrar(7, 4);
-
+DROP VIEW IF EXISTS vista_resumen_ventas;
 CREATE VIEW vista_resumen_ventas AS
 SELECT 
     v.Id_venta,
@@ -214,12 +199,8 @@ SELECT
     COUNT(*) AS Total_Veces_Vendido
 FROM Ventas
 GROUP BY Fk_Id_producto;
--- VISTA DE TODOS LOS CLIENTES
-
-select * from vista_metricas_clientes;
-SELECT * FROM vista_metricas_clientes WHERE Tipo_de_cliente = 3;
-
-CREATE OR REPLACE VIEW vista_metricas_clientes AS
+DROP VIEW IF EXISTS vista_metricas_clientes;
+CREATE VIEW vista_metricas_clientes AS
 SELECT
     c.Id_cliente,
     c.N_cliente AS Nombre_cliente,
@@ -236,15 +217,12 @@ SELECT
     
     -- Consumo reciente en las últimas 10 ventas del cliente
     COALESCE((
-        SELECT SUM(sub_p.Precio_producto)
-        FROM (
-            SELECT p_sub.Precio_producto
-            FROM Ventas v_sub
-            INNER JOIN Productos p_sub ON v_sub.Fk_Id_producto = p_sub.Id_producto
-            WHERE v_sub.Fk_Id_cliente = c.Id_cliente
-            ORDER BY v_sub.Fecha_venta DESC
-            LIMIT 10
-        ) AS sub_p
+        SELECT SUM(p_sub.Precio_producto)
+        FROM Ventas v_sub
+        INNER JOIN Productos p_sub ON v_sub.Fk_Id_producto = p_sub.Id_producto
+        WHERE v_sub.Fk_Id_cliente = c.Id_cliente
+        ORDER BY v_sub.Fecha_venta DESC
+        LIMIT 10
     ), 0.00) AS Consumo_reciente_ultimos_10,
     
     -- Conteo de pedidos por mes de antigüedad
@@ -257,6 +235,14 @@ FROM Clientes c
 LEFT JOIN Ventas v ON c.Id_cliente = v.Fk_Id_cliente
 LEFT JOIN Productos p ON v.Fk_Id_producto = p.Id_producto
 GROUP BY c.Id_cliente, c.N_cliente, c.T_cliente;
+
+-- VISTA DE TODOS LOS CLIENTES
+SELECT * FROM vista_metricas_clientes;
+SELECT * FROM vista_metricas_clientes WHERE Tipo_de_cliente = 3;
+
+
+
+
 -- datos insertados
 INSERT INTO Ventas (Fk_Id_cliente, Fk_Id_producto, Fecha_venta) VALUES
 (1, 1, NOW() - INTERVAL 5 DAY),
@@ -361,6 +347,7 @@ INSERT INTO Ventas (Fk_Id_cliente, Fk_Id_producto, Fecha_venta) VALUES
 --------------------------------------------
 DELIMITER $$
 
+DROP PROCEDURE IF EXISTS sp_Actualizar_Metricas_Cliente$$
 CREATE PROCEDURE sp_Actualizar_Metricas_Cliente(
     IN p_id_cliente INT
 )
@@ -385,7 +372,7 @@ select
         COUNT(CASE WHEN TIMESTAMPDIFF (MONTH, v.Fecha_venta, CURRENT_TIMESTAMP) = 3 THEN 1 END) AS Pedidos_mes_3
         
 	INTO 
-		v_total_consumo,v_consumo_reciente,v_ped_act,v_ped_1,v_ped_2,v_ped_3
+        v_total_consumo,v_ultima_fecha,v_ped_act,v_ped_1,v_ped_2,v_ped_3
 	FROM Ventas v
     INNER JOIN Productos p ON v.Fk_Id_producto = p.Id_producto
     WHERE Fk_Id_cliente = p_id_cliente;

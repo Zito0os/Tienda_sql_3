@@ -1,39 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { useCallback, useEffect, useState } from 'react'
 import './AdminDashboard.css'
-import SalesHistory from './SalesHistory.jsx'
-
-const customerTypes = [
-  { id: 'all', label: 'Todos' },
-  { id: 'normal', label: 'Normal' },
-  { id: 'risk', label: 'En riesgo' },
-  { id: 'high', label: 'Alto nivel' },
-]
-
-const typeMeta = {
-  normal: { label: 'Normal', color: '#4cc9f0' },
-  risk: { label: 'En riesgo', color: '#ff6b6b' },
-  high: { label: 'Alto nivel', color: '#9b7bff' },
-}
-
-const currency = new Intl.NumberFormat('es-MX', {
-  style: 'currency',
-  currency: 'MXN',
-  maximumFractionDigits: 0,
-})
 
 const number = new Intl.NumberFormat('es-MX')
+const customerTypeOptions = [
+  { id: 'all', label: 'Todos' },
+  { id: '1', label: 'Tipo 1' },
+  { id: '2', label: 'Tipo 2' },
+  { id: '3', label: 'Tipo 3' },
+]
 
 function formatDate(value) {
   if (!value) return 'Sin pedidos'
@@ -44,58 +18,90 @@ function formatDate(value) {
   }).format(new Date(value))
 }
 
+function formatMoney(value) {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    maximumFractionDigits: 2,
+  }).format(Number(value) || 0)
+}
+
+async function requestJson(url) {
+  const response = await fetch(url)
+  const contentType = response.headers.get('content-type') || ''
+
+  if (!contentType.includes('application/json')) {
+    throw new Error('La API no está disponible. Abre la aplicación desde el puerto 3001 o inicia el proxy de Vite.')
+  }
+
+  const body = await response.json()
+  if (!response.ok) throw new Error(body.error || 'No se pudo consultar la información.')
+  return body
+}
+
 function AdminDashboard() {
-  const [dashboard, setDashboard] = useState(null)
+  const [metrics, setMetrics] = useState(null)
+  const [customerId, setCustomerId] = useState('')
+  const [sales, setSales] = useState([])
+  const [customersByType, setCustomersByType] = useState([])
   const [selectedType, setSelectedType] = useState('all')
-  const [status, setStatus] = useState('loading')
+  const [metricsStatus, setMetricsStatus] = useState('idle')
+  const [salesStatus, setSalesStatus] = useState('loading')
+  const [typesStatus, setTypesStatus] = useState('loading')
   const [error, setError] = useState('')
 
-  const loadDashboard = useCallback(async () => {
-    setStatus('loading')
-    setError('')
-
+  const loadSales = useCallback(async () => {
+    setSalesStatus('loading')
     try {
-      const response = await fetch('/api/admin/dashboard')
-      const body = await response.json()
-      if (!response.ok) throw new Error(body.error || 'No se pudieron cargar las métricas.')
-
-      setDashboard(body)
-      setStatus('success')
+      const body = await requestJson('/api/admin/sales-summary')
+      setSales(body.sales)
+      setSalesStatus('success')
     } catch (requestError) {
       setError(requestError.message)
-      setStatus('error')
+      setSalesStatus('error')
+    }
+  }, [])
+
+  const loadCustomerTypes = useCallback(async (type) => {
+    setTypesStatus('loading')
+    try {
+      const body = await requestJson(`/api/admin/customer-types?type=${type}`)
+      setCustomersByType(body.customers)
+      setTypesStatus('success')
+    } catch (requestError) {
+      setError(requestError.message)
+      setTypesStatus('error')
     }
   }, [])
 
   useEffect(() => {
-    loadDashboard()
-  }, [loadDashboard])
+    loadSales()
+    loadCustomerTypes('all')
+  }, [loadCustomerTypes, loadSales])
 
-  const filteredCustomers = useMemo(() => {
-    const customers = dashboard?.customers || []
-    if (selectedType === 'all') return customers
-    return customers.filter((customer) => customer.type === selectedType)
-  }, [dashboard, selectedType])
+  const searchMetrics = async (event) => {
+    event.preventDefault()
+    const id = Number(customerId)
+    if (!Number.isInteger(id) || id <= 0) {
+      setError('Ingresa un ID de cliente válido.')
+      setMetricsStatus('error')
+      return
+    }
 
-  const totalSpent = filteredCustomers.reduce((sum, customer) => sum + customer.totalSpent, 0)
-  const totalOrders = filteredCustomers.reduce((sum, customer) => sum + customer.orderCount, 0)
-  const averageSpent = filteredCustomers.length ? totalSpent / filteredCustomers.length : 0
+    setMetricsStatus('loading')
+    setError('')
+    try {
+      const body = await requestJson(`/api/admin/customer-metrics?customerId=${id}`)
+      setMetrics(body.metrics)
+      setMetricsStatus('success')
+    } catch (requestError) {
+      setMetrics(null)
+      setError(requestError.message)
+      setMetricsStatus('error')
+    }
+  }
 
-  const distribution = useMemo(
-    () => Object.entries(typeMeta).map(([type, meta]) => {
-      const customers = (dashboard?.customers || []).filter((customer) => customer.type === type)
-      return {
-        type,
-        name: meta.label,
-        customers: customers.length,
-        spent: customers.reduce((sum, customer) => sum + customer.totalSpent, 0),
-        color: meta.color,
-      }
-    }),
-    [dashboard],
-  )
-
-  const filterLabel = customerTypes.find((type) => type.id === selectedType)?.label
+  const filterLabel = customerTypeOptions.find((type) => type.id === selectedType)?.label
 
   return (
     <div className="admin-shell">
@@ -111,7 +117,6 @@ function AdminDashboard() {
         <nav className="admin-nav" aria-label="Navegación administrativa">
           <a className="active" href="#resumen">Resumen</a>
           <a href="#clientes">Clientes</a>
-          <a href="#productos">Productos</a>
           <a href="#ventas">Ventas</a>
         </nav>
 
@@ -123,196 +128,63 @@ function AdminDashboard() {
           <div>
             <p className="admin-eyebrow">Panel de control</p>
             <h1>Tu negocio, en una sola vista.</h1>
-            <p>Analiza clientes, actividad y productos con información directa de tus ventas.</p>
+            <p>Analiza clientes y actividad con las métricas calculadas por la base de datos.</p>
           </div>
-          {dashboard?.generatedAt && (
-            <span className="updated-at">Actualizado {formatDate(dashboard.generatedAt)}</span>
-          )}
+          <span className="updated-at">Vistas SQL conectadas</span>
         </section>
 
-        {status === 'loading' && (
-          <section className="admin-state" aria-live="polite">
-            <span className="loader" />
-            <h2>Preparando tus métricas</h2>
-            <p>Estamos consultando la información de MySQL.</p>
-          </section>
-        )}
-
-        {status === 'error' && (
-          <section className="admin-state admin-error" role="alert">
-            <span className="state-icon">!</span>
-            <h2>No pudimos conectar con los datos</h2>
-            <p>{error}</p>
-            <button type="button" onClick={loadDashboard}>Intentar de nuevo</button>
-          </section>
-        )}
-
-        {status === 'success' && (
-          <>
-            <section className="filter-panel" aria-label="Filtrar métricas por tipo de cliente">
-              <div>
-                <span>Segmento de clientes</span>
-                <strong>{filterLabel}</strong>
+        <section className="view-grid">
+          <article className="dashboard-card metrics-panel">
+            <div className="card-heading">
+              <div><p className="admin-eyebrow">vista_metricas_clientes</p><h2>Métricas por cliente</h2></div>
+            </div>
+            <form className="customer-search" onSubmit={searchMetrics}>
+              <label htmlFor="customer-id">ID del cliente</label>
+              <div><input id="customer-id" type="number" min="1" value={customerId} onChange={(event) => setCustomerId(event.target.value)} placeholder="Ej. 3" /><button type="submit">Buscar</button></div>
+            </form>
+            {metricsStatus === 'loading' && <p className="view-message">Consultando la vista...</p>}
+            {metricsStatus === 'error' && <p className="view-message error-text">{error}</p>}
+            {metrics && (
+              <div className="metric-detail-grid">
+                <div><span>Cliente</span><strong>#{metrics.Id_cliente}</strong></div>
+                <div><span>Tipo de cliente</span><strong>{metrics.Tipo_de_cliente}</strong></div>
+                <div><span>Total de ventas</span><strong>{number.format(metrics.Total_ventas)}</strong></div>
+                <div><span>Total consumido</span><strong>{formatMoney(metrics.Total_consumo)}</strong></div>
+                <div><span>Último pedido</span><strong>{formatDate(metrics.Ultima_Fecha_pedido)}</strong></div>
+                <div><span>Últimas 10 ventas</span><strong>{formatMoney(metrics.Consumo_reciente_ultimos_10)}</strong></div>
+                <div><span>Mes actual</span><strong>{metrics.Pedidos_mes_Act}</strong></div>
+                <div><span>Mes 1 / 2 / 3</span><strong>{metrics.Pedidos_mes_1} / {metrics.Pedidos_mes_2} / {metrics.Pedidos_mes_3}</strong></div>
               </div>
-              <div className="admin-filters">
-                {customerTypes.map((type) => (
-                  <button
-                    type="button"
-                    key={type.id}
-                    className={selectedType === type.id ? 'active' : ''}
-                    onClick={() => setSelectedType(type.id)}
-                  >
-                    {type.label}
-                  </button>
-                ))}
-              </div>
-            </section>
+            )}
+            {!metrics && metricsStatus === 'idle' && <p className="view-message">Escribe un ID para consultar sus métricas.</p>}
+          </article>
 
-            <section className="metric-grid" aria-label={`Métricas de clientes: ${filterLabel}`}>
-              <article className="metric-card accent-blue">
-                <span className="metric-icon">CL</span>
-                <p>Clientes</p>
-                <strong>{number.format(filteredCustomers.length)}</strong>
-                <small>en el segmento seleccionado</small>
-              </article>
-              <article className="metric-card accent-violet">
-                <span className="metric-icon">$</span>
-                <p>Gasto total</p>
-                <strong>{currency.format(totalSpent)}</strong>
-                <small>acumulado por el grupo</small>
-              </article>
-              <article className="metric-card accent-coral">
-                <span className="metric-icon">VT</span>
-                <p>Pedidos</p>
-                <strong>{number.format(totalOrders)}</strong>
-                <small>ventas registradas</small>
-              </article>
-              <article className="metric-card accent-gold">
-                <span className="metric-icon">Ø</span>
-                <p>Promedio por cliente</p>
-                <strong>{currency.format(averageSpent)}</strong>
-                <small>gasto medio acumulado</small>
-              </article>
-            </section>
+          <article className="dashboard-card types-panel" id="clientes">
+            <div className="card-heading"><div><p className="admin-eyebrow">vista_tipos_clientes</p><h2>Clientes por tipo</h2></div></div>
+            <div className="type-selector" role="group" aria-label="Filtrar tipos de cliente">
+              {customerTypeOptions.map((type) => <button type="button" key={type.id} className={selectedType === type.id ? 'active' : ''} onClick={() => { setSelectedType(type.id); loadCustomerTypes(type.id) }}>{type.label}</button>)}
+            </div>
+            <div className="table-scroll compact-table">
+              <table><thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Descripción</th></tr></thead><tbody>
+                {customersByType.map((customer) => <tr key={customer.Id_cliente}><td>#{customer.Id_cliente}</td><td><strong>{customer.Nombre_cliente}</strong></td><td>{customer.Tipo_cliente_id}</td><td><span className="type-badge">{customer.Tipo_cliente_descripcion}</span></td></tr>)}
+              </tbody></table>
+              {typesStatus === 'loading' && <p className="empty-table">Consultando tipos...</p>}
+              {typesStatus === 'success' && !customersByType.length && <p className="empty-table">No hay clientes en este tipo.</p>}
+            </div>
+          </article>
 
-            <section className="chart-grid">
-              <article className="dashboard-card">
-                <div className="card-heading">
-                  <div>
-                    <p className="admin-eyebrow">Composición</p>
-                    <h2>Distribución de clientes</h2>
-                  </div>
-                  <span>{dashboard.customers.length} total</span>
-                </div>
-                <div className="donut-layout">
-                  <div className="chart-wrap" role="img" aria-label="Gráfica circular de clientes por clasificación">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={distribution} dataKey="customers" nameKey="name" innerRadius={66} outerRadius={96} paddingAngle={4} stroke="none">
-                          {distribution.map((entry) => <Cell key={entry.type} fill={entry.color} />)}
-                        </Pie>
-                        <Tooltip contentStyle={{ background: '#11182b', border: '1px solid #283452', borderRadius: 12 }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="donut-center">
-                      <strong>{dashboard.customers.length}</strong>
-                      <span>clientes</span>
-                    </div>
-                  </div>
-                  <div className="chart-legend">
-                    {distribution.map((entry) => (
-                      <div key={entry.type}>
-                        <span className="legend-dot" style={{ background: entry.color }} />
-                        <p>{entry.name}<small>{currency.format(entry.spent)}</small></p>
-                        <strong>{entry.customers}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </article>
-
-              <article className="dashboard-card">
-                <div className="card-heading">
-                  <div>
-                    <p className="admin-eyebrow">Valor</p>
-                    <h2>Gasto por segmento</h2>
-                  </div>
-                </div>
-                <div className="bar-chart" role="img" aria-label="Gráfica de gasto total por clasificación">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={distribution} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
-                      <CartesianGrid stroke="#25304b" strokeDasharray="4 4" vertical={false} />
-                      <XAxis dataKey="name" tick={{ fill: '#aebae8', fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <YAxis tickFormatter={(value) => `$${Math.round(value / 1000)}k`} tick={{ fill: '#8793bd', fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <Tooltip formatter={(value) => [currency.format(value), 'Gasto']} cursor={{ fill: 'rgba(255,255,255,.04)' }} contentStyle={{ background: '#11182b', border: '1px solid #283452', borderRadius: 12 }} />
-                      <Bar dataKey="spent" radius={[10, 10, 3, 3]}>
-                        {distribution.map((entry) => <Cell key={entry.type} fill={entry.color} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </article>
-            </section>
-
-            <section className="table-grid">
-              <article className="dashboard-card table-card" id="clientes">
-                <div className="card-heading">
-                  <div>
-                    <p className="admin-eyebrow">Clientes</p>
-                    <h2>Top 10 por gasto</h2>
-                  </div>
-                  <span>{filterLabel}</span>
-                </div>
-                <div className="table-scroll">
-                  <table>
-                    <thead><tr><th>#</th><th>Cliente</th><th>Tipo</th><th>Pedidos</th><th>Último pedido</th><th>Gasto</th></tr></thead>
-                    <tbody>
-                      {filteredCustomers.slice(0, 10).map((customer, index) => (
-                        <tr key={customer.id}>
-                          <td><span className="rank">{index + 1}</span></td>
-                          <td><strong>{customer.name}</strong></td>
-                          <td><span className={`type-badge ${customer.type}`}>{customer.typeLabel}</span></td>
-                          <td>{number.format(customer.orderCount)}</td>
-                          <td>{formatDate(customer.lastOrder)}</td>
-                          <td><strong>{currency.format(customer.totalSpent)}</strong></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {!filteredCustomers.length && <p className="empty-table">No hay clientes en este segmento.</p>}
-                </div>
-              </article>
-
-              <article className="dashboard-card table-card" id="productos">
-                <div className="card-heading">
-                  <div>
-                    <p className="admin-eyebrow">Catálogo</p>
-                    <h2>Top 5 productos</h2>
-                  </div>
-                  <span>por ventas</span>
-                </div>
-                <div className="table-scroll">
-                  <table>
-                    <thead><tr><th>#</th><th>Producto</th><th>Ventas</th><th>Ingresos</th></tr></thead>
-                    <tbody>
-                      {dashboard.topProducts.map((product, index) => (
-                        <tr key={product.id}>
-                          <td><span className="rank">{index + 1}</span></td>
-                          <td><strong>{product.name}</strong></td>
-                          <td>{number.format(product.unitsSold)}</td>
-                          <td><strong>{currency.format(product.revenue)}</strong></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {!dashboard.topProducts.length && <p className="empty-table">Todavía no hay productos vendidos.</p>}
-                </div>
-              </article>
-            </section>
-
-            <SalesHistory />
-          </>
-        )}
+          <article className="dashboard-card sales-panel" id="ventas">
+            <div className="card-heading"><div><p className="admin-eyebrow">vista_resumen_ventas</p><h2>Resumen de ventas</h2></div><span>{number.format(sales.length)} registros</span></div>
+            <div className="table-scroll">
+              <table><thead><tr><th>Venta</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Producto</th><th>Precio</th></tr></thead><tbody>
+                {sales.map((sale) => <tr key={sale.Id_venta}><td>#{sale.Id_venta}</td><td>{formatDate(sale.Fecha_venta)}</td><td><strong>{sale.Cliente}</strong></td><td>{sale.Telefono}</td><td>{sale.Producto}</td><td><strong>{formatMoney(sale.Precio)}</strong></td></tr>)}
+              </tbody></table>
+              {salesStatus === 'loading' && <p className="empty-table">Consultando ventas...</p>}
+              {salesStatus === 'success' && !sales.length && <p className="empty-table">No hay ventas registradas.</p>}
+              {salesStatus === 'error' && <p className="empty-table error-text">{error}</p>}
+            </div>
+          </article>
+        </section>
       </main>
 
       <footer className="admin-footer">
